@@ -1,0 +1,15 @@
+const router = require("express").Router();
+const users = require("./users");
+const posts = require("./products");
+const test = require("./test");
+const { authController } = require("../controllers");
+
+router.post("/register", authController.register);
+router.post("/login", authController.login);
+router.post("/logout", authController.logout);
+
+router.use("/users", users);
+router.use("/posts", posts);
+router.use("/info", test);
+
+module.exports = router;
