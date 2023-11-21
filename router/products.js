@@ -1,14 +1,21 @@
 const express = require("express");
 const router = express.Router();
-const { postController } = require("../controllers");
+const productController = require("../controllers/productController");
+const { auth } = require("../utils");
 
-router.get("/", themeController.getThemes);
-router.post("/", auth(), themeController.createTheme);
+router.get("/", productController.getLatestProducts);
+router.get("/:productId", productController.getProductById);
 
-router.get("/:themeId", themeController.getTheme);
-router.post("/:themeId", auth(), postController.createPost);
-router.put("/:themeId", auth(), themeController.subscribe);
-router.put("/:themeId/posts/:postId", auth(), postController.editPost);
-router.delete("/:themeId/posts/:postId", auth(), postController.deletePost);
+router.post("/", auth(), productController.createProduct);
+
+router.put("/:productId", auth(), productController.editProduct);
+router.delete("/:productId", auth(), productController.deleteProduct);
+
+router.put("/:productId/reviews", auth(), productController.addReview);
+router.delete(
+  "/:productId/reviews/:reviewId",
+  auth(),
+  productController.deleteReview
+);
 
 module.exports = router;

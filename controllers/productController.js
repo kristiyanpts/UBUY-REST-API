@@ -31,7 +31,7 @@ function newProduct(
     });
 }
 
-function getLatestsProducts(req, res, next) {
+function getLatestProducts(req, res, next) {
   const limit = Number(req.query.limit) || 6;
 
   productModel
@@ -41,6 +41,19 @@ function getLatestsProducts(req, res, next) {
     .populate("buyers reviews owner")
     .then((products) => {
       res.status(200).json(products);
+    })
+    .catch(next);
+}
+
+function getProductById(req, res, next) {
+  const { productId } = req.params;
+
+  productModel
+    .findById(productId)
+    .populate("buyers reviews owner")
+    .then((product) => {
+      if (product == null) throw new Error("Product not found!");
+      res.status(200).json(course);
     })
     .catch(next);
 }
@@ -61,7 +74,6 @@ function editProduct(req, res, next) {
     req.body;
   const { _id: owner } = req.user;
 
-  // if the userId is not the same as this one of the post, the post will not be updated
   productModel
     .findOneAndUpdate(
       { _id: productId, owner },
@@ -99,10 +111,65 @@ function deleteProduct(req, res, next) {
     .catch(next);
 }
 
+async function addReview(req, res, next) {
+  const { productId } = req.params;
+  const { caption, message } = req.body;
+  const { _id: userId } = req.user;
+
+  let product = await productModel.findById(productId);
+  if (product.owner == userId) {
+    return res
+      .status(401)
+      .json({ message: "Can not review your own product!" });
+  }
+
+  productModel
+    .updateOne(
+      {
+        _id: productId,
+      },
+      {
+        $addToSet: { reviews: { caption, message } },
+      },
+      { new: true }
+    )
+    .then(() => res.status(200).json({ message: "Successfully added review!" }))
+    .catch(next);
+}
+
+async function deleteReview(req, res, next) {
+  const { productId, reviewId } = req.params;
+  const { _id: userId } = req.user;
+
+  let product = await productModel.findById(productId);
+  if (product.owner != userId) {
+    return res
+      .status(401)
+      .json({ message: "User is not owner of the review!" });
+  }
+
+  productModel
+    .updateOne(
+      {
+        _id: productId,
+      },
+      {
+        $pull: { reviews: reviewId },
+      }
+    )
+    .then(() =>
+      res.status(200).json({ message: "Review was deleted successfully!" })
+    )
+    .catch(next);
+}
+
 module.exports = {
-  getLatestsProducts,
+  getLatestProducts,
+  getProductById,
   newProduct,
   createProduct,
   editProduct,
   deleteProduct,
+  addReview,
+  deleteReview,
 };
