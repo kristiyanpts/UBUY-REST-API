@@ -4,12 +4,12 @@ function newProduct(
   name,
   description,
   quantity,
-  date,
   price,
   category,
   imageURL,
   owner
 ) {
+  let date = new Date();
   return productModel
     .create({
       name,
@@ -32,7 +32,7 @@ function newProduct(
 }
 
 function getLatestProducts(req, res, next) {
-  const limit = Number(req.query.limit) || 6;
+  const limit = Number(req.query.limit) || 0;
 
   productModel
     .find()
@@ -53,18 +53,19 @@ function getProductById(req, res, next) {
     .populate("buyers reviews owner")
     .then((product) => {
       if (product == null) throw new Error("Product not found!");
-      res.status(200).json(course);
+      res.status(200).json(product);
     })
     .catch(next);
 }
 
 function createProduct(req, res, next) {
   const { _id: owner } = req.user;
-  const { name, description, quantity, date, price, category, imageURL } =
-    req.body;
+  const { name, description, quantity, price, category, imageURL } = req.body;
 
-  newPost(name, description, quantity, date, price, category, imageURL, owner)
-    .then(([_, updatedTheme]) => console.log("Created product."))
+  newProduct(name, description, quantity, price, category, imageURL, owner)
+    .then(([_, updatedTheme]) =>
+      res.status(200).json({ message: "Created product successfully" })
+    )
     .catch(next);
 }
 
@@ -95,7 +96,7 @@ function deleteProduct(req, res, next) {
   const { _id: owner } = req.user;
 
   Promise.all([
-    postModel.findOneAndDelete({ _id: productId, owner }),
+    productModel.findOneAndDelete({ _id: productId, owner }),
     userModel.findOneAndUpdate(
       { _id: owner },
       { $pull: { products: productId } }
