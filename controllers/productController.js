@@ -193,23 +193,37 @@ async function deleteReview(req, res, next) {
   const { _id: userId } = req.user;
 
   let product = await productModel.findById(productId);
-  if (product.reviews[reviewId].author != userId) {
+  let productReview = product.reviews.find((r) => r._id == reviewId);
+  console.log(productReview.author, userId);
+  if (productReview.author.toString() != userId.toString()) {
     return res
       .status(401)
       .json({ message: "User is not owner of the review!" });
   }
 
   productModel
-    .updateOne(
+    .findOneAndUpdate(
       {
         _id: productId,
       },
       {
-        $pull: { reviews: reviewId },
-      }
+        $pull: { reviews: { _id: reviewId } },
+      },
+      { new: true }
     )
-    .then(() =>
-      res.status(200).json({ message: "Review was deleted successfully!" })
+    .populate("buyers reviews owner")
+    .populate({
+      path: "reviews",
+      populate: {
+        path: "author",
+        model: "User",
+      },
+    })
+    .then((updatedProduct) =>
+      res.status(200).json({
+        message: "Review was deleted successfully!",
+        newProduct: updatedProduct,
+      })
     )
     .catch(next);
 }
