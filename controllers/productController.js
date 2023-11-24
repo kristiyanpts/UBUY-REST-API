@@ -95,6 +95,14 @@ function editProduct(req, res, next) {
       { name, description, quantity, date, price, category, imageURL },
       { new: true }
     )
+    .populate("buyers reviews owner")
+    .populate({
+      path: "reviews",
+      populate: {
+        path: "author",
+        model: "User",
+      },
+    })
     .then((updatedProduct) => {
       if (updatedProduct) {
         res.status(200).json(updatedProduct);
@@ -163,6 +171,14 @@ async function addReview(req, res, next) {
       },
       { new: true }
     )
+    .populate("buyers reviews owner")
+    .populate({
+      path: "reviews",
+      populate: {
+        path: "author",
+        model: "User",
+      },
+    })
     .then((updateProduct) => {
       res.status(200).json({
         message: "Successfully added review!",
