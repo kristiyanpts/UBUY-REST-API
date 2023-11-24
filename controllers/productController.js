@@ -39,6 +39,13 @@ function getLatestProducts(req, res, next) {
     .sort({ created_at: -1 })
     .limit(limit)
     .populate("buyers reviews owner")
+    .populate({
+      path: "reviews",
+      populate: {
+        path: "author",
+        model: "User",
+      },
+    })
     .then((products) => {
       res.status(200).json(products);
     })
@@ -51,6 +58,13 @@ function getProductById(req, res, next) {
   productModel
     .findById(productId)
     .populate("buyers reviews owner")
+    .populate({
+      path: "reviews",
+      populate: {
+        path: "author",
+        model: "User",
+      },
+    })
     .then((product) => {
       if (product == null) throw new Error("Product not found!");
       res.status(200).json(product);
@@ -112,10 +126,25 @@ function deleteProduct(req, res, next) {
     .catch(next);
 }
 
+// async function getReviews(req, res, next) {
+//   const { productId } = req.params;
+
+//   productModel
+//     .find({ _id: productId })
+//     .sort({ created_at: -1 })
+//     .populate("author")
+//     .then((products) => {
+//       res.status(200).json(products);
+//     })
+//     .catch(next);
+// }
+
 async function addReview(req, res, next) {
   const { productId } = req.params;
   const { caption, message } = req.body;
   const { _id: userId } = req.user;
+
+  let date = new Date();
 
   let product = await productModel.findById(productId);
   if (product.owner == userId) {
@@ -125,16 +154,21 @@ async function addReview(req, res, next) {
   }
 
   productModel
-    .updateOne(
+    .findOneAndUpdate(
       {
         _id: productId,
       },
       {
-        $addToSet: { reviews: { caption, message } },
+        $addToSet: { reviews: { caption, message, date, author: userId } },
       },
       { new: true }
     )
-    .then(() => res.status(200).json({ message: "Successfully added review!" }))
+    .then((updateProduct) => {
+      res.status(200).json({
+        message: "Successfully added review!",
+        newProduct: updateProduct,
+      });
+    })
     .catch(next);
 }
 
@@ -143,7 +177,7 @@ async function deleteReview(req, res, next) {
   const { _id: userId } = req.user;
 
   let product = await productModel.findById(productId);
-  if (product.owner != userId) {
+  if (product.reviews[reviewId].author != userId) {
     return res
       .status(401)
       .json({ message: "User is not owner of the review!" });

@@ -23,17 +23,6 @@ function register(req, res, next) {
     role,
   } = req.body;
 
-  console.log(
-    firstName,
-    lastName,
-    email,
-    username,
-    password,
-    repeatPassword,
-    pfpUrl,
-    role
-  );
-
   if (password != repeatPassword) {
     return res.status(401).json({ message: "Passwords do not match!" });
   }

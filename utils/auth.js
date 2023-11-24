@@ -5,7 +5,6 @@ const { userModel } = require("../models");
 function auth(redirectUnauthenticated = true) {
   return function (req, res, next) {
     const token = req.cookies[authCookieName] || "";
-    console.log(token, req.cookies[authCookieName], req);
     Promise.all([jwt.verifyToken(token)])
       .then(([data]) => {
         userModel.findById(data.id).then((user) => {

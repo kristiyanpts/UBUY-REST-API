@@ -57,7 +57,8 @@ const productSchema = new mongoose.Schema(
       {
         caption: { type: String, required: true },
         message: { type: String, required: true },
-        likes: [{ type: ObjectId, ref: "User" }],
+        date: { type: String, required: true },
+        author: { type: ObjectId, ref: "User" },
       },
     ],
     owner: {
