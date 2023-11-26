@@ -11,7 +11,8 @@ router.post("/", auth(), productController.createProduct);
 router.put("/:productId", auth(), productController.editProduct);
 router.delete("/:productId", auth(), productController.deleteProduct);
 
-// router.get("/:productId/reviews", auth(), productController.getReviews);
+router.put("/:productId/buy", auth(), productController.buyProduct);
+
 router.put("/:productId/reviews", auth(), productController.addReview);
 router.delete(
   "/:productId/reviews/:reviewId",

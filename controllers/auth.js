@@ -1,4 +1,4 @@
-const { userModel } = require("../models");
+const { userModel, productModel } = require("../models");
 
 const utils = require("../utils");
 const { authCookieName } = require("../app-config");
@@ -105,10 +105,13 @@ function logout(req, res) {
 }
 
 function getProfileInfo(req, res, next) {
-  const { _id: userId } = req.user;
+  const { userId } = req.params;
+
+  console.log(userId);
 
   userModel
     .findOne({ _id: userId }, { password: 0, __v: 0 }) //finding by Id and returning without password and __v
+    .populate("products")
     .then((user) => {
       res.status(200).json(user);
     })
@@ -116,7 +119,8 @@ function getProfileInfo(req, res, next) {
 }
 
 function editProfileInfo(req, res, next) {
-  const { _id: userId } = req.user;
+  const { userId } = req.params;
+
   const {
     firstName,
     lastName,
@@ -146,8 +150,31 @@ function editProfileInfo(req, res, next) {
       },
       { runValidators: true, new: true }
     )
+    .populate("products")
     .then((x) => {
       res.status(200).json(x);
+    })
+    .catch(next);
+}
+
+function deleteProfile(req, res, next) {
+  const { userId } = req.params;
+
+  Promise.all([
+    userModel.findOneAndDelete({ _id: userId }),
+    productModel.deleteMany({ owner: userId }),
+    productModel.updateMany({ buyers: userId }, { $pull: { buyers: userId } }),
+    productModel.updateMany(
+      { "reviews.author": userId },
+      { $pull: { reviews: { author: userId } } }
+    ),
+  ])
+    .then(([deletedOne, _, __]) => {
+      if (deletedOne) {
+        res.status(200).json(deletedOne);
+      } else {
+        res.status(401).json({ message: `Not allowed!` });
+      }
     })
     .catch(next);
 }
@@ -158,4 +185,5 @@ module.exports = {
   logout,
   getProfileInfo,
   editProfileInfo,
+  deleteProfile,
 };

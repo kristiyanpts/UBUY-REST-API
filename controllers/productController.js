@@ -113,6 +113,30 @@ function editProduct(req, res, next) {
     .catch(next);
 }
 
+function buyProduct(req, res, next) {
+  const { productId } = req.params;
+  const { quantity } = req.body;
+  const { _id: userId } = req.user;
+
+  productModel
+    .findOneAndUpdate(
+      { _id: productId },
+      {
+        quantity,
+        $addToSet: { buyers: userId },
+      },
+      { new: true }
+    )
+    .then((updatedProduct) => {
+      if (updatedProduct) {
+        res.status(200).json(updatedProduct);
+      } else {
+        res.status(401).json({ message: `Not allowed!` });
+      }
+    })
+    .catch(next);
+}
+
 function deleteProduct(req, res, next) {
   const { productId } = req.params;
   const { _id: owner } = req.user;
@@ -237,4 +261,5 @@ module.exports = {
   deleteProduct,
   addReview,
   deleteReview,
+  buyProduct,
 };
