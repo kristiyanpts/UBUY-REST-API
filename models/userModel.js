@@ -4,7 +4,7 @@ const saltRounds = Number(process.env.SALTROUNDS) || 5;
 
 const URL_PATTERN = /^https?:\/\/.+$/i;
 const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/i;
-const LATIN_LETTERS_PATTERN = /[a-zA-Z0-9]+/g;
+const LATIN_LETTERS_PATTERN = /[a-zA-Z0-9]+/i;
 
 const { ObjectId } = mongoose.Schema.Types;
 
@@ -69,7 +69,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: {
-        values: ["buyer", "seller", "both"],
+        values: ["buyer", "seller", "admin", "owner"],
         message: "Role is invalid!",
       },
       required: true,

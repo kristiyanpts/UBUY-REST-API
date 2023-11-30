@@ -85,14 +85,13 @@ function createProduct(req, res, next) {
 
 function editProduct(req, res, next) {
   const { productId } = req.params;
-  const { name, description, quantity, date, price, category, imageURL } =
-    req.body;
+  const { name, description, quantity, price, category, imageURL } = req.body;
   const { _id: owner } = req.user;
 
   productModel
     .findOneAndUpdate(
       { _id: productId, owner },
-      { name, description, quantity, date, price, category, imageURL },
+      { name, description, quantity, price, category, imageURL },
       { new: true }
     )
     .populate("buyers reviews owner")
@@ -218,7 +217,6 @@ async function deleteReview(req, res, next) {
 
   let product = await productModel.findById(productId);
   let productReview = product.reviews.find((r) => r._id == reviewId);
-  console.log(productReview.author, userId);
   if (productReview.author.toString() != userId.toString()) {
     return res
       .status(401)

@@ -104,10 +104,17 @@ function logout(req, res) {
   res.clearCookie(authCookieName).status(204).send({ message: "Logged out!" });
 }
 
+function getUsers(req, res, next) {
+  userModel
+    .find() //finding by Id and returning without password and __v
+    .then((users) => {
+      res.status(200).json(users);
+    })
+    .catch(next);
+}
+
 function getProfileInfo(req, res, next) {
   const { userId } = req.params;
-
-  console.log(userId);
 
   userModel
     .findOne({ _id: userId }, { password: 0, __v: 0 }) //finding by Id and returning without password and __v
@@ -121,20 +128,7 @@ function getProfileInfo(req, res, next) {
 function editProfileInfo(req, res, next) {
   const { userId } = req.params;
 
-  const {
-    firstName,
-    lastName,
-    email,
-    username,
-    password,
-    repeatPassword,
-    pfpUrl,
-    role,
-  } = req.body;
-
-  if (password != repeatPassword) {
-    return res.status(401).json({ message: "Passwords do not match!" });
-  }
+  const { firstName, lastName, email, username, pfpUrl, role } = req.body;
 
   userModel
     .findOneAndUpdate(
@@ -144,7 +138,6 @@ function editProfileInfo(req, res, next) {
         lastName,
         email,
         username,
-        password,
         pfpUrl,
         role,
       },
@@ -186,4 +179,5 @@ module.exports = {
   getProfileInfo,
   editProfileInfo,
   deleteProfile,
+  getUsers,
 };
