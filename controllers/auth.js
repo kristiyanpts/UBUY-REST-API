@@ -118,9 +118,18 @@ function getProfileInfo(req, res, next) {
 
   userModel
     .findOne({ _id: userId }, { password: 0, __v: 0 }) //finding by Id and returning without password and __v
-    .populate("products")
+    .populate({
+      path: "products",
+      populate: {
+        path: "owner",
+      },
+    })
     .then((user) => {
-      res.status(200).json(user);
+      if (user) {
+        res.status(200).json(user);
+      } else {
+        throw new Error("User not found.");
+      }
     })
     .catch(next);
 }
