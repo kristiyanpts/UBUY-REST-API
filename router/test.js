@@ -10,7 +10,7 @@ const data = {
 };
 
 router.get("/", function (req, res) {
-  res.send(data);
+  res.status(200).send(data);
 });
 
 module.exports = router;
