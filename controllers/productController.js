@@ -136,14 +136,15 @@ function buyProduct(req, res, next) {
     .catch(next);
 }
 
-function deleteProduct(req, res, next) {
+async function deleteProduct(req, res, next) {
   const { productId } = req.params;
-  const { _id: owner } = req.user;
+
+  let product = await productModel.findById(productId);
 
   Promise.all([
-    productModel.findOneAndDelete({ _id: productId, owner }),
+    productModel.findOneAndDelete({ _id: productId }),
     userModel.findOneAndUpdate(
-      { _id: owner },
+      { _id: product.owner },
       { $pull: { products: productId } }
     ),
   ])
